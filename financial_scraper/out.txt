@@ -1,0 +1,5 @@
+function openPerson(p) {
+      if (p && p.uuid) {
+        if(p.pracCtegCode==='3'){
+            window.open('new-sac-other-finish-person.html?uuid=' + encodeURIComponent(p.uuid), '_blank');
+        }

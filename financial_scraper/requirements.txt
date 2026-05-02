@@ -1,0 +1,6 @@
+playwright
+httpx
+pymongo
+playwright-stealth
+fake-useragent
+tenacity
