@@ -2898,6 +2898,79 @@ def get_talent_detail(source: str, talent_id: str):
                     "role": clean_str(h.get("role")),
                     "status": clean_str(h.get("status"))
                 })
+
+        try:
+            cursor.execute("SELECT * FROM rsc_user_mapping WHERE rsc_uid = ? ORDER BY updated_at DESC LIMIT 1", (talent_id,))
+            mapping_row = cursor.fetchone()
+            if mapping_row:
+                mapping_dict = dict(mapping_row)
+                source_type = clean_str(mapping_dict.get("source_type")).upper()
+                practitioner_id = clean_str(mapping_dict.get("practitioner_id"))
+                official_raw = {}
+                if source_type == "SAC":
+                    cursor.execute("SELECT raw_data, institution_id FROM sac_practitioners WHERE practitioner_id = ?", (practitioner_id,))
+                    pr = cursor.fetchone()
+                    pr_dict = dict(pr) if pr else {}
+                    if pr_dict.get("raw_data"):
+                        try:
+                            parsed = json.loads(pr_dict.get("raw_data"))
+                            if isinstance(parsed, dict):
+                                official_raw = parsed
+                        except:
+                            pass
+                    history = official_raw.get("regHistory", []) if isinstance(official_raw, dict) else []
+                    official_timeline = []
+                    if isinstance(history, list) and history:
+                        for h in history:
+                            official_timeline.append({
+                                "start_date": clean_str(h.get("get_date")),
+                                "end_date": clean_str(h.get("leave_date")) or "至今",
+                                "institution": clean_str(h.get("org_name")),
+                                "role": clean_str(h.get("reg_type")),
+                                "status": clean_str(h.get("status"))
+                            })
+                    if official_timeline:
+                        profile["timeline"] = official_timeline
+                elif source_type == "AMAC":
+                    cursor.execute("SELECT raw_data, institution_id FROM amac_practitioners WHERE practitioner_id = ?", (practitioner_id,))
+                    pr = cursor.fetchone()
+                    pr_dict = dict(pr) if pr else {}
+                    if pr_dict.get("raw_data"):
+                        try:
+                            parsed = json.loads(pr_dict.get("raw_data"))
+                            if isinstance(parsed, dict):
+                                official_raw = parsed
+                        except:
+                            pass
+                    history = official_raw.get("personCertHistoryList", []) if isinstance(official_raw, dict) else []
+                    official_timeline = []
+                    if isinstance(history, list) and history:
+                        for h in history:
+                            start_date = ""
+                            end_date = "至今"
+                            if h.get("certObtainDate"):
+                                try:
+                                    import datetime
+                                    start_date = datetime.datetime.fromtimestamp(h["certObtainDate"] / 1000).strftime("%Y-%m-%d")
+                                except:
+                                    pass
+                            if h.get("certEndDate") and h.get("statusName") != "正常":
+                                try:
+                                    import datetime
+                                    end_date = datetime.datetime.fromtimestamp(h["certEndDate"] / 1000).strftime("%Y-%m-%d")
+                                except:
+                                    pass
+                            official_timeline.append({
+                                "start_date": start_date,
+                                "end_date": end_date,
+                                "institution": clean_str(h.get("orgName")),
+                                "role": clean_str(h.get("certName")),
+                                "status": clean_str(h.get("statusName"))
+                            })
+                    if official_timeline:
+                        profile["timeline"] = official_timeline
+        except Exception as e:
+            print("Warning: Failed to attach official timeline:", e)
         
         try:
             if profile.get("timeline"):
