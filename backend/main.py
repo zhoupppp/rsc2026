@@ -2918,6 +2918,19 @@ def get_talent_detail(source: str, talent_id: str):
                                 official_raw = parsed
                         except:
                             pass
+                    if not profile.get("origin_url"):
+                        person_id = ""
+                        if isinstance(official_raw, dict):
+                            person_id = official_raw.get("RPI_ID") or official_raw.get("pti_id") or official_raw.get("raw_list_data", {}).get("uuid") or practitioner_id
+                            if official_raw.get("pti_id"):
+                                profile["origin_url"] = f"https://exam.sac.net.cn/pages/registration/sac-publicity/finish-publicity.html?ptiID={person_id}"
+                            elif official_raw.get("uuid"):
+                                profile["origin_url"] = f"https://gs.sac.net.cn/pages/registration/new-sac-finish-person.html?uuid={official_raw.get('uuid')}"
+                            else:
+                                profile["origin_url"] = f"https://gs.sac.net.cn/pages/registration/new-sac-finish-person.html?uuid={person_id}"
+                        else:
+                            person_id = practitioner_id
+                            profile["origin_url"] = f"https://gs.sac.net.cn/pages/registration/new-sac-finish-person.html?uuid={person_id}"
                     history = official_raw.get("regHistory", []) if isinstance(official_raw, dict) else []
                     official_timeline = []
                     if isinstance(history, list) and history:
@@ -2942,6 +2955,13 @@ def get_talent_detail(source: str, talent_id: str):
                                 official_raw = parsed
                         except:
                             pass
+                    if not profile.get("origin_url"):
+                        account_id = ""
+                        if isinstance(official_raw, dict):
+                            account_id = official_raw.get("accountId", practitioner_id)
+                        else:
+                            account_id = practitioner_id
+                        profile["origin_url"] = f"https://gs.amac.org.cn/amac-infodisc/res/pof/person/personDetail.html?accountId={account_id}"
                     history = official_raw.get("personCertHistoryList", []) if isinstance(official_raw, dict) else []
                     official_timeline = []
                     if isinstance(history, list) and history:

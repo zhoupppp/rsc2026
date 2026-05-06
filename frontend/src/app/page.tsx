@@ -1842,6 +1842,16 @@ export default function Home() {
                                   {showAllTimeline ? "收起" : "展开全部"}
                                 </button>
                               )}
+                              {detailData?.origin_url && (
+                                <a
+                                  href={detailData.origin_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="mt-4 inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900"
+                                >
+                                  查看官网登记信息 <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
                             </div>
                           ) : (
                             <div className="flex flex-col items-center justify-center h-full text-slate-400 py-12">
